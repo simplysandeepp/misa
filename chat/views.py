@@ -17,6 +17,8 @@ messages = [
 def home(request):
     return render(request, "index.html")
 
+from django.http import JsonResponse, StreamingHttpResponse
+
 @csrf_exempt
 def chat_api(request):
     if request.method == "POST":
@@ -28,47 +30,52 @@ def chat_api(request):
                 
             messages.append({"role": "user", "content": user_input})
             
-            response = requests.post(
-                url="https://openrouter.ai/api/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {API_KEY}",
-                    "Content-Type": "application/json",
-                    "HTTP-Referer": "http://localhost:8000",
-                    "X-Title": "Django Local Chatbot"
-                },
-                data=json.dumps({
-                    "model": "nvidia/nemotron-3.5-lightning:free",
-                    "messages": messages,
-                    "reasoning": {"enabled": True},
-                    "max_tokens": 4096
-                })
-            )
-            
-            response_data = response.json()
-            
-            if response.status_code == 401:
-                return JsonResponse({"error": f"Authentication Error: OpenRouter rejected your API key. (Error: {response_data.get('error', {}).get('message')})"}), 401
+            def event_stream():
+                response = requests.post(
+                    url="https://openrouter.ai/api/v1/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {API_KEY}",
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": "http://localhost:8000",
+                        "X-Title": "Django Local Chatbot"
+                    },
+                    json={
+                        "model": "nvidia/nemotron-3.5-lightning:free",
+                        "messages": messages,
+                        "reasoning": {"enabled": True},
+                        "max_tokens": 4096,
+                        "stream": True
+                    },
+                    stream=True
+                )
                 
-            if 'error' in response_data:
-                return JsonResponse({"error": str(response_data['error'])}, status=500)
+                full_reply = ""
                 
-            assistant_message = response_data['choices'][0]['message']
-            bot_reply = assistant_message.get('content')
-            reasoning_details = assistant_message.get('reasoning_details')
-            
-            new_message = {
-                "role": "assistant",
-                "content": bot_reply
-            }
-            if reasoning_details:
-                new_message["reasoning_details"] = reasoning_details
+                if response.status_code != 200:
+                    yield f"data: {json.dumps({'error': 'API Error ' + str(response.status_code)})}\n\n"
+                    return
                 
-            messages.append(new_message)
-            
-            return JsonResponse({
-                "reply": bot_reply,
-                "reasoning": reasoning_details
-            })
+                for line in response.iter_lines():
+                    if line:
+                        line = line.decode('utf-8')
+                        if line.startswith('data: '):
+                            payload = line[6:]
+                            if payload == '[DONE]':
+                                break
+                            try:
+                                chunk = json.loads(payload)
+                                if 'choices' in chunk and len(chunk['choices']) > 0:
+                                    delta = chunk['choices'][0].get('delta', {})
+                                    content_chunk = delta.get('content', '')
+                                    if content_chunk:
+                                        full_reply += content_chunk
+                                        yield f"data: {json.dumps({'content': content_chunk})}\n\n"
+                            except json.JSONDecodeError:
+                                pass
+                
+                messages.append({"role": "assistant", "content": full_reply})
+                
+            return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
             
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)

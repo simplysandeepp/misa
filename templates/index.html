@@ -109,6 +109,8 @@
         
         loadingIndicator.style.display = 'block';
         chatBox.scrollTop = chatBox.scrollHeight;
+        
+        const botMsgDiv = addEmptyBotMessage();
 
         try {
             const response = await fetch("/chat/", {
@@ -117,18 +119,62 @@
                 body: JSON.stringify({ message: text })
             });
             
-            const data = await response.json();
             loadingIndicator.style.display = 'none';
             
-            if (response.ok) {
-                addBotMessage(data.reply, data.reasoning);
-            } else {
-                addMessage("Error: " + (data.error || "Something went wrong"), 'bot');
+            if (!response.ok) {
+                botMsgDiv.querySelector('.markdown-body').textContent = "Error: Something went wrong";
+                return;
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let fullText = "";
+            let markdownContainer = botMsgDiv.querySelector('.markdown-body');
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n');
+                
+                for (const line of lines) {
+                    if (line.startsWith('data: ')) {
+                        const dataStr = line.replace('data: ', '').trim();
+                        if (dataStr === '[DONE]') break;
+                        if (!dataStr) continue;
+                        
+                        try {
+                            const data = JSON.parse(dataStr);
+                            if (data.error) {
+                                fullText += "\n\nError: " + data.error;
+                            }
+                            if (data.content) {
+                                fullText += data.content;
+                            }
+                        } catch (e) {
+                            console.error("JSON parse error on stream", e);
+                        }
+                    }
+                }
+                
+                markdownContainer.innerHTML = marked.parse(fullText);
+                chatBox.scrollTop = chatBox.scrollHeight;
             }
         } catch (error) {
             loadingIndicator.style.display = 'none';
-            addMessage("Network Error: " + error.message, 'bot');
+            botMsgDiv.querySelector('.markdown-body').textContent = "Network Error: " + error.message;
         }
+    }
+
+    function addEmptyBotMessage() {
+        const msgDiv = document.createElement("div");
+        msgDiv.className = "message bot-message";
+        const textSpan = document.createElement("div");
+        textSpan.className = "markdown-body";
+        msgDiv.appendChild(textSpan);
+        chatBox.appendChild(msgDiv);
+        return msgDiv;
     }
 
     function addMessage(text, sender) {
