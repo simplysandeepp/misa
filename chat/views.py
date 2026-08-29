@@ -11,7 +11,7 @@ API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
 # Store conversation history in memory for simplicity
 messages = [
-    {"role": "system", "content": "You are a highly capable AI assistant. Please provide very detailed, well-structured, and comprehensive answers to all user questions. Expand on topics to ensure the user gets a full understanding."}
+    {"role": "system", "content": "You are a highly capable AI assistant. Adapt your response length to the user's query: for simple greetings or casual chat (like 'hi' or 'hello'), be brief, friendly, and concise. For complex questions or when asked for explanations, provide detailed, well-structured, and comprehensive answers."}
 ]
 
 def home(request):
