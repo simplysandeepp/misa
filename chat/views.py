@@ -84,3 +84,9 @@ def clear_chat(request):
         ]
         return JsonResponse({"status": "cleared"})
     return JsonResponse({"error": "Invalid method"}, status=405)
+
+def chat_history(request):
+    if request.method == "GET":
+        history = [msg for msg in messages if msg.get('role') != 'system']
+        return JsonResponse({"history": history})
+    return JsonResponse({"error": "Invalid method"}, status=405)

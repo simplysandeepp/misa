@@ -45,6 +45,25 @@
     const userInput = document.getElementById("user-input");
     const loadingIndicator = document.getElementById("loading-indicator");
 
+    window.onload = async function() {
+        try {
+            const response = await fetch("/chat/history/");
+            const data = await response.json();
+            if (data.history && data.history.length > 0) {
+                chatBox.innerHTML = '';
+                data.history.forEach(msg => {
+                    if (msg.role === 'user') {
+                        addMessage(msg.content, 'user');
+                    } else if (msg.role === 'assistant') {
+                        addBotMessage(msg.content, msg.reasoning_details);
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Failed to load history", e);
+        }
+    };
+
     function handleKeyPress(event) {
         if (event.key === "Enter") {
             sendMessage();
