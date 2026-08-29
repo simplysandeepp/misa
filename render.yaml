@@ -6,6 +6,6 @@ services:
     startCommand: "gunicorn config.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.0
+        value: 3.12.3
       - key: OPENROUTER_API_KEY
         sync: false
