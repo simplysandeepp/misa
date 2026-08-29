@@ -31,6 +31,8 @@ def chat():
                 headers={
                     "Authorization": f"Bearer {API_KEY}",
                     "Content-Type": "application/json",
+                    "HTTP-Referer": "http://localhost:3000", # Recommended by OpenRouter
+                    "X-Title": "Local Chatbot"              # Recommended by OpenRouter
                 },
                 data=json.dumps({
                     "model": "nvidia/nemotron-3.5-lightning:free",
@@ -41,6 +43,11 @@ def chat():
             
             response_data = response.json()
             
+            if response.status_code == 401:
+                print(f"\nAuthentication Error: OpenRouter rejected your API key. (Error: {response_data.get('error', {}).get('message')})")
+                print("Please double-check that your OPENROUTER_API_KEY in the .env file is correct and your account is active.")
+                continue
+                
             if 'error' in response_data:
                 print(f"\nAPI Error: {response_data['error']}")
                 continue
