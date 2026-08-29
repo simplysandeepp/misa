@@ -42,7 +42,7 @@ def chat_api(request):
                     json={
                         "model": "nvidia/nemotron-3.5-lightning:free",
                         "messages": messages,
-                        "reasoning": {"enabled": True},
+                        "reasoning": {"enabled": False},
                         "max_tokens": 4096,
                         "stream": True
                     },
