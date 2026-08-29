@@ -26,7 +26,10 @@
 <body>
 
 <div id="chat-container">
-    <div class="header">Nemotron AI Assistant</div>
+    <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Nemotron AI Assistant</span>
+        <button onclick="clearChat()" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold;">Clear Chat</button>
+    </div>
     <div id="chat-box">
         <div class="message bot-message">Hello! I am ready to provide highly detailed and comprehensive answers. What would you like to discuss today?</div>
     </div>
@@ -45,6 +48,16 @@
     function handleKeyPress(event) {
         if (event.key === "Enter") {
             sendMessage();
+        }
+    }
+
+    async function clearChat() {
+        if (!confirm("Are you sure you want to clear the chat history?")) return;
+        try {
+            await fetch("/chat/clear/", { method: "POST" });
+            chatBox.innerHTML = '<div class="message bot-message">Hello! I am ready to provide highly detailed and comprehensive answers. What would you like to discuss today?</div>';
+        } catch (e) {
+            console.error("Failed to clear chat context", e);
         }
     }
 
