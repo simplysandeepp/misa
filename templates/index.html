@@ -5,9 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Chatbot</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        #chat-container { width: 100%; max-width: 800px; background: white; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; height: 90vh; }
-        .header { background-color: #2c3e50; color: white; padding: 15px 20px; font-size: 18px; font-weight: bold; text-align: center; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f9; display: flex; align-items: stretch; justify-content: flex-start; height: 100vh; margin: 0; }
+        #sidebar { width: 250px; background: #2c3e50; color: white; display: flex; flex-direction: column; padding: 15px; overflow-y: auto; }
+        .tab-btn { background: #34495e; color: white; border: none; padding: 10px; margin-bottom: 5px; cursor: pointer; border-radius: 4px; text-align: left; font-size: 14px; }
+        .tab-btn.active { background: #3498db; font-weight: bold; }
+        .tab-btn:hover:not(.active) { background: #415b76; }
+        #new-tab-btn { background: #2ecc71; margin-bottom: 20px; font-weight: bold; text-align: center; }
+        #new-tab-btn:hover { background: #27ae60; }
+        #chat-container { flex: 1; background: white; display: flex; flex-direction: column; height: 100vh; }
+        .header { background-color: white; color: #2c3e50; padding: 15px 20px; font-size: 18px; font-weight: bold; border-bottom: 1px solid #ddd; }
         #chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
         .message { max-width: 85%; padding: 12px 18px; border-radius: 8px; line-height: 1.6; word-wrap: break-word; font-size: 15px; }
         .user-message { background-color: #3498db; color: white; align-self: flex-end; border-bottom-right-radius: 0; }
@@ -22,25 +28,27 @@
         #send-btn:hover { background-color: #27ae60; }
         .loading { align-self: flex-start; color: #95a5a6; font-style: italic; display: none; margin-left: 20px; margin-bottom: 15px; }
         
-        /* Rendered Markdown Styles */
         .markdown-body { font-size: 15px; }
         .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 0; margin-bottom: 10px; }
         .markdown-body p { margin-top: 0; margin-bottom: 10px; }
         .markdown-body ul, .markdown-body ol { margin-top: 0; margin-bottom: 10px; padding-left: 20px; }
         .markdown-body li { margin-bottom: 4px; }
     </style>
-    <!-- Include marked.js for Markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
+<div id="sidebar">
+    <button id="new-tab-btn" class="tab-btn" onclick="createNewTab()">+ New Chat</button>
+    <div id="tabs-list"></div>
+</div>
+
 <div id="chat-container">
     <div class="header" style="display: flex; justify-content: space-between; align-items: center;">
-        <span>Nemotron AI Assistant</span>
+        <span id="chat-title">Nemotron AI Assistant</span>
         <button onclick="clearChat()" style="background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: bold;">Clear Chat</button>
     </div>
     <div id="chat-box">
-        <div class="message bot-message">Hello! I am ready to provide highly detailed and comprehensive answers. What would you like to discuss today?</div>
     </div>
     <div class="loading" id="loading-indicator">Thinking deeply...</div>
     <div id="input-container">
@@ -53,13 +61,45 @@
     const chatBox = document.getElementById("chat-box");
     const userInput = document.getElementById("user-input");
     const loadingIndicator = document.getElementById("loading-indicator");
+    
+    let currentChatId = 'Chat 1';
 
     window.onload = async function() {
+        await loadChat(currentChatId);
+    };
+    
+    function renderTabs(chatIds) {
+        const list = document.getElementById('tabs-list');
+        list.innerHTML = '';
+        chatIds.forEach(id => {
+            const btn = document.createElement('button');
+            btn.className = 'tab-btn' + (id === currentChatId ? ' active' : '');
+            btn.textContent = id;
+            btn.onclick = () => loadChat(id);
+            list.appendChild(btn);
+        });
+    }
+
+    function createNewTab() {
+        const list = document.getElementById('tabs-list');
+        const num = list.children.length + 1;
+        loadChat("Chat " + num);
+    }
+
+    async function loadChat(chatId) {
+        currentChatId = chatId;
+        document.getElementById('chat-title').textContent = "Nemotron AI - " + chatId;
+        
         try {
-            const response = await fetch("/chat/history/", { credentials: "same-origin" });
+            const response = await fetch(`/chat/history/?chat_id=${encodeURIComponent(chatId)}`, { credentials: "same-origin" });
             const data = await response.json();
+            
+            if (data.chat_ids) {
+                renderTabs(data.chat_ids);
+            }
+            
+            chatBox.innerHTML = '';
             if (data.history && data.history.length > 0) {
-                chatBox.innerHTML = '';
                 data.history.forEach(msg => {
                     if (msg.role === 'user') {
                         addMessage(msg.content, 'user');
@@ -67,11 +107,14 @@
                         addBotMessage(msg.content, msg.reasoning_details);
                     }
                 });
+            } else {
+                chatBox.innerHTML = '<div class="message bot-message">Hello! I am ready to provide highly detailed and comprehensive answers. What would you like to discuss today?</div>';
             }
+            chatBox.scrollTop = chatBox.scrollHeight;
         } catch (e) {
             console.error("Failed to load history", e);
         }
-    };
+    }
 
     function handleKeyPress(event) {
         if (event.key === "Enter") {
@@ -80,9 +123,14 @@
     }
 
     async function clearChat() {
-        if (!confirm("Are you sure you want to clear the chat history?")) return;
+        if (!confirm("Are you sure you want to clear this chat history?")) return;
         try {
-            await fetch("/chat/clear/", { method: "POST", credentials: "same-origin" });
+            await fetch("/chat/clear/", { 
+                method: "POST", 
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: currentChatId }),
+                credentials: "same-origin" 
+            });
             chatBox.innerHTML = '<div class="message bot-message">Hello! I am ready to provide highly detailed and comprehensive answers. What would you like to discuss today?</div>';
         } catch (e) {
             console.error("Failed to clear chat context", e);
@@ -117,7 +165,7 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 credentials: "same-origin",
-                body: JSON.stringify({ message: text })
+                body: JSON.stringify({ message: text, chat_id: currentChatId })
             });
             
             loadingIndicator.style.display = 'none';

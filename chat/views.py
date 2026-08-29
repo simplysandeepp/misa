@@ -9,12 +9,12 @@ from dotenv import load_dotenv
 load_dotenv()
 API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
-def get_session_messages(request):
-    if 'messages' not in request.session:
-        request.session['messages'] = [
-            {"role": "system", "content": "You are a highly capable AI assistant. Adapt your response length to the user's query: for simple greetings or casual chat (like 'hi' or 'hello'), be brief, friendly, and concise. For complex questions, provide detailed answers. Use clean formatting: prefer simple numbered lists (1. 2. 3.) and bullet points, and avoid excessive markdown symbols."}
-        ]
-    return request.session['messages']
+SYSTEM_PROMPT = {"role": "system", "content": "You are a highly capable AI assistant. Adapt your response length to the user's query: for simple greetings or casual chat (like 'hi' or 'hello'), be brief, friendly, and concise. For complex questions, provide detailed answers. Use clean formatting: prefer simple numbered lists (1. 2. 3.) and bullet points, and avoid excessive markdown symbols."}
+
+def get_chats(request):
+    if 'chats' not in request.session:
+        request.session['chats'] = {'Chat 1': [SYSTEM_PROMPT]}
+    return request.session['chats']
 
 def home(request):
     # Ensure session is created if it doesn't exist
@@ -28,12 +28,19 @@ def chat_api(request):
         try:
             data = json.loads(request.body)
             user_input = data.get("message")
+            chat_id = data.get("chat_id", "Chat 1")
+            
             if not user_input:
                 return JsonResponse({"error": "No message provided"}, status=400)
                 
-            messages = get_session_messages(request)
+            chats = get_chats(request)
+            if chat_id not in chats:
+                chats[chat_id] = [SYSTEM_PROMPT]
+                
+            messages = chats[chat_id]
             messages.append({"role": "user", "content": user_input})
-            request.session['messages'] = messages
+            chats[chat_id] = messages
+            request.session['chats'] = chats
             request.session.save()
             
             def event_stream():
@@ -81,7 +88,8 @@ def chat_api(request):
                 
                 # Update session manually since StreamingHttpResponse bypasses middleware saving
                 messages.append({"role": "assistant", "content": full_reply})
-                request.session['messages'] = messages
+                chats[chat_id] = messages
+                request.session['chats'] = chats
                 request.session.save()
                 
             return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
@@ -94,16 +102,24 @@ def chat_api(request):
 @csrf_exempt
 def clear_chat(request):
     if request.method == "POST":
-        request.session['messages'] = [
-            {"role": "system", "content": "You are a highly capable AI assistant. Adapt your response length to the user's query: for simple greetings or casual chat (like 'hi' or 'hello'), be brief, friendly, and concise. For complex questions, provide detailed answers. Use clean formatting: prefer simple numbered lists (1. 2. 3.) and bullet points, and avoid excessive markdown symbols."}
-        ]
+        data = json.loads(request.body)
+        chat_id = data.get("chat_id", "Chat 1")
+        chats = get_chats(request)
+        chats[chat_id] = [SYSTEM_PROMPT]
+        request.session['chats'] = chats
         request.session.save()
         return JsonResponse({"status": "cleared"})
     return JsonResponse({"error": "Invalid method"}, status=405)
 
 def chat_history(request):
     if request.method == "GET":
-        messages = get_session_messages(request)
-        history = [msg for msg in messages if msg.get('role') != 'system']
-        return JsonResponse({"history": history})
+        chat_id = request.GET.get('chat_id', 'Chat 1')
+        chats = get_chats(request)
+        if chat_id not in chats:
+            chats[chat_id] = [SYSTEM_PROMPT]
+            request.session['chats'] = chats
+            request.session.save()
+            
+        history = [msg for msg in chats[chat_id] if msg.get('role') != 'system']
+        return JsonResponse({"history": history, "chat_ids": list(chats.keys())})
     return JsonResponse({"error": "Invalid method"}, status=405)
