@@ -1,0 +1,85 @@
+Watching for file changes with StatReloader
+[29/Aug/2026 07:04:05] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 39
+[29/Aug/2026 07:04:08] "GET / HTTP/1.1" 200 11988
+[29/Aug/2026 07:04:08] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 667
+[29/Aug/2026 07:04:09] "GET / HTTP/1.1" 200 11988
+[29/Aug/2026 07:04:09] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 667
+[29/Aug/2026 07:04:09] "GET / HTTP/1.1" 200 11988
+[29/Aug/2026 07:04:09] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 667
+[29/Aug/2026 07:04:09] "GET / HTTP/1.1" 200 11988
+[29/Aug/2026 07:04:09] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 667
+[29/Aug/2026 07:04:10] "GET / HTTP/1.1" 200 11988
+[29/Aug/2026 07:04:10] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 667
+[29/Aug/2026 07:04:10] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 667
+[29/Aug/2026 07:04:11] "GET /chat/history/?chat_id=Chat%202 HTTP/1.1" 200 49
+[29/Aug/2026 07:04:11] "GET /chat/history/?chat_id=Chat%203 HTTP/1.1" 200 59
+[29/Aug/2026 07:04:11] "GET /chat/history/?chat_id=Chat%204 HTTP/1.1" 200 69
+[29/Aug/2026 07:04:12] "GET /chat/history/?chat_id=Chat%205 HTTP/1.1" 200 79
+[29/Aug/2026 07:04:12] "GET /chat/history/?chat_id=Chat%206 HTTP/1.1" 200 89
+[29/Aug/2026 07:04:12] "GET /chat/history/?chat_id=Chat%207 HTTP/1.1" 200 99
+[29/Aug/2026 07:04:12] "GET /chat/history/?chat_id=Chat%208 HTTP/1.1" 200 109
+[29/Aug/2026 07:04:13] "GET /chat/history/?chat_id=Chat%209 HTTP/1.1" 200 119
+[29/Aug/2026 07:04:13] "GET /chat/history/?chat_id=Chat%2010 HTTP/1.1" 200 130
+[29/Aug/2026 07:04:13] "GET /chat/history/?chat_id=Chat%2011 HTTP/1.1" 200 141
+[29/Aug/2026 07:04:17] "POST /chat/ HTTP/1.1" 200 513
+[29/Aug/2026 07:04:18] "GET /chat/history/?chat_id=Chat%205 HTTP/1.1" 200 141
+[29/Aug/2026 07:04:21] "POST /chat/ HTTP/1.1" 200 34
+[29/Aug/2026 07:04:22] "GET /chat/history/?chat_id=Chat%2011 HTTP/1.1" 200 293
+[29/Aug/2026 07:04:23] "GET /chat/history/?chat_id=Chat%208 HTTP/1.1" 200 141
+[29/Aug/2026 07:04:24] "GET /chat/history/?chat_id=Chat%205 HTTP/1.1" 200 177
+[29/Aug/2026 07:04:25] "GET /chat/history/?chat_id=Chat%208 HTTP/1.1" 200 141
+[29/Aug/2026 07:04:25] "GET /chat/history/?chat_id=Chat%2011 HTTP/1.1" 200 293
+[29/Aug/2026 07:04:30] "POST /chat/ HTTP/1.1" 200 34
+[29/Aug/2026 07:04:35] "GET / HTTP/1.1" 200 11988
+[29/Aug/2026 07:04:35] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 769
+[29/Aug/2026 07:04:35] "GET / HTTP/1.1" 200 11988
+[29/Aug/2026 07:04:35] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 769
+[29/Aug/2026 07:04:36] "GET / HTTP/1.1" 200 11988
+[29/Aug/2026 07:04:36] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 769
+[29/Aug/2026 07:04:36] "GET / HTTP/1.1" 200 11988
+[29/Aug/2026 07:04:36] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 769
+[29/Aug/2026 07:04:36] "GET / HTTP/1.1" 200 11988
+[29/Aug/2026 07:04:36] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 769
+[29/Aug/2026 07:04:36] "GET / HTTP/1.1" 200 11988
+[29/Aug/2026 07:04:36] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 769
+[29/Aug/2026 07:04:36] "GET / HTTP/1.1" 200 11988
+[29/Aug/2026 07:04:36] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 769
+[29/Aug/2026 07:04:37] "GET / HTTP/1.1" 200 11988
+[29/Aug/2026 07:04:37] "GET /chat/history/?chat_id=Chat%201 HTTP/1.1" 200 769
+[29/Aug/2026 07:04:40] "POST /chat/clear/ HTTP/1.1" 200 21
+/Users/sandeepprajapati1202/Downloads/Personal/basic-rag/chat/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+August 29, 2026 - 07:03:57
+Django version 6.1, using settings 'config.settings'
+Starting WSGI development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.1/howto/deployment/
+Watching for file changes with StatReloader
+/Users/sandeepprajapati1202/Downloads/Personal/basic-rag/chat/views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+August 29, 2026 - 07:06:39
+Django version 6.1, using settings 'config.settings'
+Starting WSGI development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.1/howto/deployment/
+Watching for file changes with StatReloader
+/Users/sandeepprajapati1202/Downloads/Personal/basic-rag/chat/urls.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+August 29, 2026 - 07:06:48
+Django version 6.1, using settings 'config.settings'
+Starting WSGI development server at http://127.0.0.1:8000/
+Quit the server with CONTROL-C.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.1/howto/deployment/
+Watching for file changes with StatReloader

@@ -72,11 +72,67 @@
         const list = document.getElementById('tabs-list');
         list.innerHTML = '';
         chatIds.forEach(id => {
+            const tabDiv = document.createElement('div');
+            tabDiv.className = 'tab-container';
+            tabDiv.style.display = 'flex';
+            tabDiv.style.justifyContent = 'space-between';
+            tabDiv.style.alignItems = 'center';
+            tabDiv.style.marginBottom = '5px';
+            
             const btn = document.createElement('button');
             btn.className = 'tab-btn' + (id === currentChatId ? ' active' : '');
             btn.textContent = id;
+            btn.style.flex = '1';
+            btn.style.margin = '0';
+            btn.style.borderTopRightRadius = '0';
+            btn.style.borderBottomRightRadius = '0';
             btn.onclick = () => loadChat(id);
-            list.appendChild(btn);
+            
+            tabDiv.appendChild(btn);
+            
+            // Delete button
+            const delBtn = document.createElement('button');
+            delBtn.innerHTML = '&#10005;'; // X mark
+            delBtn.style.background = (id === currentChatId ? '#2980b9' : '#34495e');
+            delBtn.style.color = '#e74c3c';
+            delBtn.style.border = 'none';
+            delBtn.style.padding = '10px';
+            delBtn.style.cursor = 'pointer';
+            delBtn.style.borderTopRightRadius = '4px';
+            delBtn.style.borderBottomRightRadius = '4px';
+            delBtn.title = "Delete Chat";
+            
+            delBtn.onclick = async (e) => {
+                e.stopPropagation();
+                if (chatIds.length === 1) {
+                    alert("Cannot delete the last remaining chat.");
+                    return;
+                }
+                if (!confirm(`Delete ${id}?`)) return;
+                
+                try {
+                    const response = await fetch("/chat/delete/", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ chat_id: id }),
+                        credentials: "same-origin"
+                    });
+                    const data = await response.json();
+                    if (data.status === "deleted") {
+                        if (id === currentChatId) {
+                            // Load first available chat
+                            await loadChat(data.chat_ids[0]);
+                        } else {
+                            renderTabs(data.chat_ids);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Delete failed", err);
+                }
+            };
+            
+            tabDiv.appendChild(delBtn);
+            list.appendChild(tabDiv);
         });
     }
 

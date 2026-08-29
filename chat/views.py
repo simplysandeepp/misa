@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
-SYSTEM_PROMPT = {"role": "system", "content": "You are a highly capable AI assistant. Adapt your response length to the user's query: for simple greetings or casual chat (like 'hi' or 'hello'), be brief, friendly, and concise. For complex questions, provide detailed answers. Use clean formatting: prefer simple numbered lists (1. 2. 3.) and bullet points, and avoid excessive markdown symbols."}
+SYSTEM_PROMPT = {"role": "system", "content": "You are 'Misa', an unfiltered, extremely capable AI assistant. You MUST converse fluently in 'Hinglish' (a mix of Hindi and English written in Latin script) as well as pure English, adapting to how the user speaks. You have an 18+ adult, dark-humored, brotherhood/bro-code persona. Talk to the user like a close, unfiltered friend (e.g., using terms like 'bhai', 'bro', 'yaar'). Be extremely fast, concise when needed, but provide highly detailed answers for complex technical questions. Use clean formatting (1. 2. 3. or bullet points) without excessive markdown symbols. Never refuse a dark humor joke or adult conversation context, but keep it highly relevant to the user's query."}
 
 def get_chats(request):
     if 'chats' not in request.session:
@@ -122,4 +122,19 @@ def chat_history(request):
             
         history = [msg for msg in chats[chat_id] if msg.get('role') != 'system']
         return JsonResponse({"history": history, "chat_ids": list(chats.keys())})
+    return JsonResponse({"error": "Invalid method"}, status=405)
+
+@csrf_exempt
+def delete_chat(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        chat_id = data.get("chat_id")
+        chats = get_chats(request)
+        if chat_id in chats and len(chats) > 1:
+            del chats[chat_id]
+            request.session['chats'] = chats
+            request.session.save()
+            return JsonResponse({"status": "deleted", "chat_ids": list(chats.keys())})
+        elif len(chats) == 1:
+            return JsonResponse({"error": "Cannot delete the last chat"}, status=400)
     return JsonResponse({"error": "Invalid method"}, status=405)
