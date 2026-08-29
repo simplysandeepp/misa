@@ -56,7 +56,7 @@
 
     window.onload = async function() {
         try {
-            const response = await fetch("/chat/history/");
+            const response = await fetch("/chat/history/", { credentials: "same-origin" });
             const data = await response.json();
             if (data.history && data.history.length > 0) {
                 chatBox.innerHTML = '';
@@ -82,7 +82,7 @@
     async function clearChat() {
         if (!confirm("Are you sure you want to clear the chat history?")) return;
         try {
-            await fetch("/chat/clear/", { method: "POST" });
+            await fetch("/chat/clear/", { method: "POST", credentials: "same-origin" });
             chatBox.innerHTML = '<div class="message bot-message">Hello! I am ready to provide highly detailed and comprehensive answers. What would you like to discuss today?</div>';
         } catch (e) {
             console.error("Failed to clear chat context", e);
@@ -116,6 +116,7 @@
             const response = await fetch("/chat/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
                 body: JSON.stringify({ message: text })
             });
             
