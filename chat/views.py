@@ -56,7 +56,7 @@ def chat_api(request):
                         "X-Title": "Django Local Chatbot"
                     },
                     json={
-                        "model": "nvidia/nemotron-3.5-lightning:free",
+                        "model": "meta-llama/llama-3.1-8b-instruct:free",
                         "messages": messages,
                         "reasoning": {"enabled": False},
                         "max_tokens": 4096,
