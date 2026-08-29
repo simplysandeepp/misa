@@ -21,7 +21,16 @@
         #send-btn { background-color: #2ecc71; color: white; border: none; padding: 12px 24px; margin-left: 10px; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background-color 0.3s; }
         #send-btn:hover { background-color: #27ae60; }
         .loading { align-self: flex-start; color: #95a5a6; font-style: italic; display: none; margin-left: 20px; margin-bottom: 15px; }
+        
+        /* Rendered Markdown Styles */
+        .markdown-body { font-size: 15px; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { margin-top: 0; margin-bottom: 10px; }
+        .markdown-body p { margin-top: 0; margin-bottom: 10px; }
+        .markdown-body ul, .markdown-body ol { margin-top: 0; margin-bottom: 10px; padding-left: 20px; }
+        .markdown-body li { margin-bottom: 4px; }
     </style>
+    <!-- Include marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
@@ -134,9 +143,9 @@
         const msgDiv = document.createElement("div");
         msgDiv.className = "message bot-message";
         
-        const textSpan = document.createElement("span");
-        textSpan.style.whiteSpace = "pre-wrap";
-        textSpan.textContent = text;
+        const textSpan = document.createElement("div");
+        textSpan.className = "markdown-body";
+        textSpan.innerHTML = marked.parse(text);
         msgDiv.appendChild(textSpan);
         
         if (reasoning) {
