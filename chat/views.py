@@ -2,22 +2,25 @@ import os
 import requests
 import json
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from dotenv import load_dotenv
 
 load_dotenv()
 API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
-# Store conversation history in memory for simplicity
-messages = [
-    {"role": "system", "content": "You are a highly capable AI assistant. Adapt your response length to the user's query: for simple greetings or casual chat (like 'hi' or 'hello'), be brief, friendly, and concise. For complex questions, provide detailed answers. Use clean formatting: prefer simple numbered lists (1. 2. 3.) and bullet points, and avoid excessive markdown symbols."}
-]
+def get_session_messages(request):
+    if 'messages' not in request.session:
+        request.session['messages'] = [
+            {"role": "system", "content": "You are a highly capable AI assistant. Adapt your response length to the user's query: for simple greetings or casual chat (like 'hi' or 'hello'), be brief, friendly, and concise. For complex questions, provide detailed answers. Use clean formatting: prefer simple numbered lists (1. 2. 3.) and bullet points, and avoid excessive markdown symbols."}
+        ]
+    return request.session['messages']
 
 def home(request):
+    # Ensure session is created if it doesn't exist
+    if not request.session.session_key:
+        request.session.create()
     return render(request, "index.html")
-
-from django.http import JsonResponse, StreamingHttpResponse
 
 @csrf_exempt
 def chat_api(request):
@@ -28,7 +31,10 @@ def chat_api(request):
             if not user_input:
                 return JsonResponse({"error": "No message provided"}, status=400)
                 
+            messages = get_session_messages(request)
             messages.append({"role": "user", "content": user_input})
+            request.session['messages'] = messages
+            request.session.save()
             
             def event_stream():
                 response = requests.post(
@@ -73,7 +79,10 @@ def chat_api(request):
                             except json.JSONDecodeError:
                                 pass
                 
+                # Update session manually since StreamingHttpResponse bypasses middleware saving
                 messages.append({"role": "assistant", "content": full_reply})
+                request.session['messages'] = messages
+                request.session.save()
                 
             return StreamingHttpResponse(event_stream(), content_type='text/event-stream')
             
@@ -85,15 +94,16 @@ def chat_api(request):
 @csrf_exempt
 def clear_chat(request):
     if request.method == "POST":
-        global messages
-        messages = [
-            {"role": "system", "content": "You are a highly capable AI assistant. Adapt your response length to the user's query: for simple greetings or casual chat (like 'hi' or 'hello'), be brief, friendly, and concise. For complex questions or when asked for explanations, provide detailed, well-structured, and comprehensive answers."}
+        request.session['messages'] = [
+            {"role": "system", "content": "You are a highly capable AI assistant. Adapt your response length to the user's query: for simple greetings or casual chat (like 'hi' or 'hello'), be brief, friendly, and concise. For complex questions, provide detailed answers. Use clean formatting: prefer simple numbered lists (1. 2. 3.) and bullet points, and avoid excessive markdown symbols."}
         ]
+        request.session.save()
         return JsonResponse({"status": "cleared"})
     return JsonResponse({"error": "Invalid method"}, status=405)
 
 def chat_history(request):
     if request.method == "GET":
+        messages = get_session_messages(request)
         history = [msg for msg in messages if msg.get('role') != 'system']
         return JsonResponse({"history": history})
     return JsonResponse({"error": "Invalid method"}, status=405)
