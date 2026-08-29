@@ -16,6 +16,9 @@ def get_chats(request):
         request.session['chats'] = {'Chat 1': [SYSTEM_PROMPT]}
     return request.session['chats']
 
+def landing(request):
+    return render(request, "landing.html")
+
 def home(request):
     # Ensure session is created if it doesn't exist
     if not request.session.session_key:
