@@ -74,3 +74,13 @@ def chat_api(request):
             return JsonResponse({"error": str(e)}, status=500)
             
     return JsonResponse({"error": "Invalid method"}, status=405)
+
+@csrf_exempt
+def clear_chat(request):
+    if request.method == "POST":
+        global messages
+        messages = [
+            {"role": "system", "content": "You are a highly capable AI assistant. Adapt your response length to the user's query: for simple greetings or casual chat (like 'hi' or 'hello'), be brief, friendly, and concise. For complex questions or when asked for explanations, provide detailed, well-structured, and comprehensive answers."}
+        ]
+        return JsonResponse({"status": "cleared"})
+    return JsonResponse({"error": "Invalid method"}, status=405)
