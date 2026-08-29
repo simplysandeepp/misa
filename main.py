@@ -1,15 +1,12 @@
 import os
-from openai import OpenAI
+import requests
+import json
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Initialize the client pointing to OpenRouter
-client = OpenAI(
-  base_url="https://openrouter.ai/api/v1",
-  api_key=os.environ.get("OPENROUTER_API_KEY"),
-)
+API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
 def chat():
     print("Welcome to the Chatbot! (Type 'exit' to quit)")
@@ -28,19 +25,47 @@ def chat():
         messages.append({"role": "user", "content": user_input})
         
         try:
-            # Using a free model available on OpenRouter
-            response = client.chat.completions.create(
-                model="meta-llama/llama-3.1-8b-instruct:free",
-                messages=messages,
+            # Using the NVIDIA model with reasoning enabled
+            response = requests.post(
+                url="https://openrouter.ai/api/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {API_KEY}",
+                    "Content-Type": "application/json",
+                },
+                data=json.dumps({
+                    "model": "nvidia/nemotron-3.5-lightning:free",
+                    "messages": messages,
+                    "reasoning": {"enabled": True}
+                })
             )
             
-            bot_reply = response.choices[0].message.content
+            response_data = response.json()
+            
+            if 'error' in response_data:
+                print(f"\nAPI Error: {response_data['error']}")
+                continue
+                
+            assistant_message = response_data['choices'][0]['message']
+            bot_reply = assistant_message.get('content')
+            reasoning_details = assistant_message.get('reasoning_details')
+            
             print(f"\nBot: {bot_reply}")
             
-            messages.append({"role": "assistant", "content": bot_reply})
+            # Preserve the assistant message with reasoning_details for context
+            new_message = {
+                "role": "assistant",
+                "content": bot_reply
+            }
+            if reasoning_details:
+                new_message["reasoning_details"] = reasoning_details
+                
+            messages.append(new_message)
             
         except Exception as e:
             print(f"\nError: {e}")
 
 if __name__ == "__main__":
-    chat()
+    if not API_KEY or API_KEY == "your_openrouter_api_key_here":
+        print("Please set your OPENROUTER_API_KEY in the .env file.")
+    else:
+        chat()
