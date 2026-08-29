@@ -56,7 +56,7 @@ def chat_api(request):
                         "X-Title": "Django Local Chatbot"
                     },
                     json={
-                        "model": "meta-llama/llama-3.1-8b-instruct:free",
+                        "model": "google/gemma-4-31b-it:free",
                         "messages": messages,
                         "reasoning": {"enabled": False},
                         "max_tokens": 4096,
